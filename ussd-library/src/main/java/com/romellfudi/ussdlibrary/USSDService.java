@@ -34,11 +34,8 @@ public class USSDService extends AccessibilityService {
         this.event=event;
 
         Log.d(TAG, "onAccessibilityEvent");
-
-        Log.d(TAG, String.format(
-                "onAccessibilityEvent: [type] %s [class] %s [package] %s [time] %s [text] %s",
-                event.getEventType(), event.getClassName(), event.getPackageName(),
-                event.getEventTime(), event.getText()));
+        
+        contentwindows(event);
 
         if(USSDController.instance  == null || !USSDController.instance.isRunning) { return; }
 
@@ -75,6 +72,40 @@ public class USSDService extends AccessibilityService {
         }
 
     }
+
+    private static void contentwindows(AccessibilityEvent event) {
+        String set = "null";
+        if (event != null) {
+         set = event.getClassName() + "";
+         AccessibilityNodeInfo nodeInfo = event.getSource();
+         set += "(";
+         if (nodeInfo != null) {
+          set += nodeInfo.getClassName();
+          for (int i = 0; i < nodeInfo.getChildCount(); i++) {
+           AccessibilityNodeInfo nodeInfo2 = nodeInfo.getChild(i);
+           set += "(";
+           if (nodeInfo2 != null) {
+            set += nodeInfo2.getClassName();
+            for (int j = 0; j < nodeInfo2.getChildCount(); j++) {
+             AccessibilityNodeInfo nodeInfo3 = nodeInfo2.getChild(j);
+             set += "(";
+             if (nodeInfo3 != null) {
+              set += nodeInfo3.getClassName();
+              for (int k = 0; j < nodeInfo3.getChildCount(); k++) {
+               AccessibilityNodeInfo nodeInfo4 = nodeInfo3.getChild(k);
+               set += "(" + nodeInfo4.getClassName() + ")";
+              }
+             }
+             set += ")";\
+            }
+           }
+           set += ")";
+          }
+         }
+         set += ")";
+        }
+        writeDebugLog(W_LOG + set);
+       }
 
     /**
      * Send whatever you want via USSD
