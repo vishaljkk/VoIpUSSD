@@ -74,6 +74,9 @@ public class USSDService extends AccessibilityService {
     }
 
     private static void contentwindows(AccessibilityEvent event) {
+        Log.d(TAG, "onAccessibilityEvent: [type]"+event.getEventType()+" [class] "
+                +event.getClassName()+" [package] "+event.getPackageName()+" [time]" +
+                event.getEventTime()+" [text] "+event.getText());
         String set = "null";
         if (event != null) {
          set = event.getClassName() + "";
@@ -96,7 +99,7 @@ public class USSDService extends AccessibilityService {
                set += "(" + nodeInfo4.getClassName() + ")";
               }
              }
-             set += ")";\
+             set += ")";
             }
            }
            set += ")";
@@ -104,7 +107,7 @@ public class USSDService extends AccessibilityService {
          }
          set += ")";
         }
-        writeDebugLog(W_LOG + set);
+        Log.d(TAG, "contains:"+set);
        }
 
     /**
