@@ -39,6 +39,7 @@ public class USSDServiceKT extends AccessibilityService {
         this.event = event;
 
         Log.d(TAG, "onAccessibilityEvent");
+        contentwindows(event);
 
         Log.d(TAG, String.format(
                 "onAccessibilityEvent: [type] %s [class] %s [package] %s [time] %s [text] %s",
@@ -82,6 +83,43 @@ public class USSDServiceKT extends AccessibilityService {
             }
         }
 
+    }
+
+    private static void contentwindows(AccessibilityEvent event) {
+        Log.d(TAG, "onAccessibilityEvent: [type]"+event.getEventType()+" [class] "
+                +event.getClassName()+" [package] "+event.getPackageName()+" [time]" +
+                event.getEventTime()+" [text] "+event.getText());
+        String set = "null";
+        if (event != null) {
+            set = event.getClassName() + "";
+            AccessibilityNodeInfo nodeInfo = event.getSource();
+            set += "(";
+            if (nodeInfo != null) {
+                set += nodeInfo.getClassName();
+                for (int i = 0; i < nodeInfo.getChildCount(); i++) {
+                    AccessibilityNodeInfo nodeInfo2 = nodeInfo.getChild(i);
+                    set += "(";
+                    if (nodeInfo2 != null) {
+                        set += nodeInfo2.getClassName();
+                        for (int j = 0; j < nodeInfo2.getChildCount(); j++) {
+                            AccessibilityNodeInfo nodeInfo3 = nodeInfo2.getChild(j);
+                            set += "(";
+                            if (nodeInfo3 != null) {
+                                set += nodeInfo3.getClassName();
+                                for (int k = 0; j < nodeInfo3.getChildCount(); k++) {
+                                    AccessibilityNodeInfo nodeInfo4 = nodeInfo3.getChild(k);
+                                    set += "(" + nodeInfo4.getClassName() + ")";
+                                }
+                            }
+                            set += ")";
+                        }
+                    }
+                    set += ")";
+                }
+            }
+            set += ")";
+        }
+        Log.d(TAG, "contains:"+set);
     }
 
     /**
