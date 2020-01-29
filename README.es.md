@@ -3,6 +3,8 @@
 [![Platform](https://img.shields.io/badge/platform-android-brightgreen.svg)](https://developer.android.com/index.html)
 [![API](https://img.shields.io/badge/API-23%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=23)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/romellfudi/VoIpUSSDSample/blob/master/LICENSE)
+[![](https://github.com/romellfudi/VoIpUSSD/workflows/Android%20CI/badge.svg)](https://github.com/romellfudi/VoIpUSSD/actions)
+[![Gitter](https://badges.gitter.im/romellfudi/VoIpUSSD.svg)](https://gitter.im/romellfudi/VoIpUSSD?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Bintray](https://img.shields.io/bintray/v/romllz489/maven/ussd-library.svg)](https://bintray.com/romllz489/maven/ussd-library)
 [![Bintray Kotlin](https://img.shields.io/bintray/v/romllz489/maven/kotlin-ussd-library.svg)](https://bintray.com/romllz489/maven/kotlin-ussd-library)
 [![Android Arsenal]( https://img.shields.io/badge/Android%20Arsenal-Void%20USSD%20Library-green.svg?style=flat )]( https://android-arsenal.com/details/1/7151 )
@@ -18,6 +20,9 @@
 ![](snapshot/device_recored.gif#gif)
 
 Para manejar la comunicación ussd, hay que tener presente que la interfaz depende del SO y del fabricante.
+
+## Community Chat
+- Join us [![Gitter](https://badges.gitter.im/romellfudi/VoIpUSSD.svg)](https://gitter.im/romellfudi/VoIpUSSD?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ## USSD LIBRARY
 
@@ -62,6 +67,7 @@ Agregar las dependencias: CALL_PHONE, READ_PHONE_STATE and SYSTEM_ALERT_WINDOW:
 Agregar el servicio:
 
 ```xml
+java
     <service
         android:name="com.romellfudi.ussdlibrary.USSDService"
         android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
@@ -71,6 +77,20 @@ Agregar el servicio:
         <meta-data
             android:name="android.accessibilityservice"
             android:resource="@xml/ussd_service" />
+    </service>
+```
+
+```xml
+kotlin
+    <service
+        android:name="com.romellfudi.ussdlibrary.USSDServiceKT"
+        android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+        <intent-filter>
+            <action android:name="android.accessibilityservice.AccessibilityService" />
+        </intent-filter>
+        <meta-data
+            android:name="android.accessibilityservice"
+            android:resource="@xml/ussd_service_kt" />
     </service>
 ```
 

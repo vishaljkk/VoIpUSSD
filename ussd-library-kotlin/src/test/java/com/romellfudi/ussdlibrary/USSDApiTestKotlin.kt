@@ -1,3 +1,7 @@
+/**
+ * BoostTag E.I.R.L. All Copyright Reserved
+ * www.boosttag.com
+ */
 package com.romellfudi.ussdlibrary
 
 import android.app.Activity
@@ -19,6 +23,7 @@ import org.junit.Test
 import org.junit.runners.MethodSorters
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
+import   org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PrepareForTest
 import java.util.*
 
@@ -39,7 +44,7 @@ class USSDApiTestKotlin {
     internal var ussdController = USSDController.getInstance(activity)
 
     @InjectMockKs
-    internal var ussdService = USSDService()
+    internal var ussdService = USSDServiceKT()
 
     @MockK
     lateinit var applicationInfo: ApplicationInfo
@@ -131,66 +136,11 @@ class USSDApiTestKotlin {
         val map = prepareTest()
         var MESSAGE = "loading"
 
-        every { USSDService.notInputText(any()) } returns true
+        every { USSDServiceKT.notInputText(accessibilityEvent) } returns true
         every { accessibilityEvent.source } returns null
         ussdController.callUSSDInvoke("*1#", map, callbackInvoke)
         verify { callbackInvoke.over(capture(stringSlot)) }
         assertThat(stringSlot.captured, `is`(equalTo(MESSAGE)))
-    }
-
-    @Test
-    fun callUSSDSendMultipleMessages() {
-        j = 2
-        val map = prepareTest()
-
-        var MESSAGE = "waiting"
-        every { accessibilityEvent.source } returns null
-        ussdController.callUSSDInvoke("*1#", map, callbackInvoke!!)
-        multipleMessages(MESSAGE, map)
-    }
-
-    private fun multipleMessages(msg: String, map: HashMap<String, HashSet<String>>) {
-        var message = msg
-        verify { callbackInvoke.over(capture(stringSlot)) }
-        assertThat(stringSlot.captured, `is`(equalTo(message)))
-
-        message = "message"
-        every { accessibilityEvent.source } returns null
-        ussdController.ussdInterface = ussdInterface
-
-        ussdController.send("1", callbackMessage!!)
-        verify { callbackInvoke.over(capture(stringSlot)) }
-        assertThat(stringSlot.captured, `is`(equalTo(message)))
-
-        ussdController.send("1", callbackMessage!!)
-        verify { callbackInvoke.over(capture(stringSlot)) }
-        assertThat(stringSlot.captured, `is`(equalTo(message)))
-
-        ussdController.send("1", callbackMessage!!)
-        verify { callbackInvoke.over(capture(stringSlot)) }
-        assertThat(stringSlot.captured, `is`(equalTo(message)))
-
-        ussdController.send("1", callbackMessage!!)
-        verify { callbackInvoke.over(capture(stringSlot)) }
-        assertThat(stringSlot.captured, `is`(equalTo(message)))
-
-        message = "Final Close dialog"
-        every { USSDService.notInputText(any()) } returns true
-        ussdController.callUSSDInvoke("*1#", map, callbackInvoke!!)
-        verify { callbackInvoke.over(capture(stringSlot)) }
-        assertThat(stringSlot.captured, `is`(equalTo(message)))
-    }
-
-    @Test
-    fun callUSSDOverlayInvokeMultipleMessages() {
-        j = 2
-        val map = prepareTest()
-        var MESSAGE = "waiting"
-        every { accessibilityEvent.source } returns null
-        ussdController.ussdInterface = ussdInterface
-
-        ussdController.callUSSDOverlayInvoke("*1#", map, callbackInvoke!!)
-        multipleMessages(MESSAGE, map)
     }
 
     private fun prepareTest(): HashMap<String, HashSet<String>> {
@@ -198,7 +148,6 @@ class USSDApiTestKotlin {
         map["KEY_LOGIN"] = HashSet(Arrays.asList("espere", "waiting", "loading", "esperando"))
         map["KEY_ERROR"] = HashSet(Arrays.asList("problema", "problem", "error", "null"))
         mockkObject(USSDController)
-        mockkObject(USSDService)
         mockkStatic(Uri::class)
 
         every { USSDController.verifyAccesibilityAccess(any()) } returns true

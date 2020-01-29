@@ -1,3 +1,7 @@
+/**
+ * BoostTag E.I.R.L. All Copyright Reserved
+ * www.boosttag.com
+ */
 package com.romellfudi.ussdlibrary
 
 import java.util.*
@@ -10,6 +14,7 @@ import java.util.*
  */
 interface USSDApi {
     fun send(text: String, callbackMessage: (String) -> Unit)
+    fun cancel()
     fun callUSSDInvoke(ussdPhoneNumber: String, map: HashMap<String, HashSet<String>>,
                        callbackInvoke: USSDController.CallbackInvoke)
 

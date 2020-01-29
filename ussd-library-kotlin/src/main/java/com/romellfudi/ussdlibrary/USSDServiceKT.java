@@ -1,3 +1,7 @@
+/**
+ * BoostTag E.I.R.L. All Copyright Reserved
+ * www.boosttag.com
+ */
 package com.romellfudi.ussdlibrary;
 
 import android.accessibilityservice.AccessibilityService;
@@ -19,9 +23,9 @@ import java.util.List;
  * @version 1.1.c 27/09/2018
  * @since 1.0.a
  */
-public class USSDService extends AccessibilityService {
+public class USSDServiceKT extends AccessibilityService {
 
-    private static String TAG = USSDService.class.getSimpleName();
+    private static String TAG = USSDServiceKT.class.getSimpleName();
 
     private static AccessibilityEvent event;
 
@@ -35,22 +39,26 @@ public class USSDService extends AccessibilityService {
         this.event = event;
 
         Log.d(TAG, "onAccessibilityEvent");
-        
-        contentwindows(event);
 
-        if (USSDController.instance == null || !USSDController.instance.isRunning) {
+        Log.d(TAG, String.format(
+                "onAccessibilityEvent: [type] %s [class] %s [package] %s [time] %s [text] %s",
+                event.getEventType(), event.getClassName(), event.getPackageName(),
+                event.getEventTime(), event.getText()));
+
+        if (USSDController.Companion.getInstance() == null
+                || !USSDController.Companion.getInstance().isRunning()) {
             return;
         }
 
         if (LoginView(event) && notInputText(event)) {
             // first view or logView, do nothing, pass / FIRST MESSAGE
             clickOnButton(event, 0);
-            USSDController.instance.isRunning = false;
-            USSDController.instance.callbackInvoke.over(event.getText().get(0).toString());
+            USSDController.Companion.getInstance().setRunning(false);
+            USSDController.Companion.getInstance().callbackInvoke.over(event.getText().get(0).toString());
         } else if (problemView(event) || LoginView(event)) {
             // deal down
             clickOnButton(event, 1);
-            USSDController.instance.callbackInvoke.over(event.getText().get(0).toString());
+            USSDController.Companion.getInstance().callbackInvoke.over(event.getText().get(0).toString());
         } else if (isUSSDWidget(event)) {
             // ready for work
             String response = event.getText().get(0).toString();
@@ -61,57 +69,20 @@ public class USSDService extends AccessibilityService {
                 // not more input panels / LAST MESSAGE
                 // sent 'OK' button
                 clickOnButton(event, 0);
-                USSDController.instance.isRunning = false;
-                USSDController.instance.callbackInvoke.over(response);
+                USSDController.Companion.getInstance().setRunning(false);
+                USSDController.Companion.getInstance().callbackInvoke.over(response);
             } else {
                 // sent option 1
-                if (USSDController.instance.callbackMessage == null)
-                    USSDController.instance.callbackInvoke.responseInvoke(response);
+                if (USSDController.Companion.getInstance().getCallbackMessage() == null)
+                    USSDController.Companion.getInstance().callbackInvoke.responseInvoke(response);
                 else {
-                    USSDController.instance.callbackMessage.responseMessage(response);
-                    USSDController.instance.callbackMessage = null;
+                    USSDController.Companion.getInstance().getCallbackMessage().invoke(response);
+                    USSDController.Companion.getInstance().setCallbackMessage(null);
                 }
             }
         }
 
     }
-
-    private static void contentwindows(AccessibilityEvent event) {
-        Log.d(TAG, "onAccessibilityEvent: [type]"+event.getEventType()+" [class] "
-                +event.getClassName()+" [package] "+event.getPackageName()+" [time]" +
-                event.getEventTime()+" [text] "+event.getText());
-        String set = "null";
-        if (event != null) {
-         set = event.getClassName() + "";
-         AccessibilityNodeInfo nodeInfo = event.getSource();
-         set += "(";
-         if (nodeInfo != null) {
-          set += nodeInfo.getClassName();
-          for (int i = 0; i < nodeInfo.getChildCount(); i++) {
-           AccessibilityNodeInfo nodeInfo2 = nodeInfo.getChild(i);
-           set += "(";
-           if (nodeInfo2 != null) {
-            set += nodeInfo2.getClassName();
-            for (int j = 0; j < nodeInfo2.getChildCount(); j++) {
-             AccessibilityNodeInfo nodeInfo3 = nodeInfo2.getChild(j);
-             set += "(";
-             if (nodeInfo3 != null) {
-              set += nodeInfo3.getClassName();
-              for (int k = 0; j < nodeInfo3.getChildCount(); k++) {
-               AccessibilityNodeInfo nodeInfo4 = nodeInfo3.getChild(k);
-               set += "(" + nodeInfo4.getClassName() + ")";
-              }
-             }
-             set += ")";
-            }
-           }
-           set += ")";
-          }
-         }
-         set += ")";
-        }
-        Log.d(TAG, "contains:"+set);
-       }
 
     /**
      * Send whatever you want via USSD
@@ -128,7 +99,7 @@ public class USSDService extends AccessibilityService {
      *
      */
     public static void cancel() {
-        clickOnButton(event, 0);
+        clickOnButton(event,0);
     }
 
     /**
@@ -138,7 +109,7 @@ public class USSDService extends AccessibilityService {
      * @param data  Any String
      */
     private static void setTextIntoField(AccessibilityEvent event, String data) {
-        USSDController ussdController = USSDController.instance;
+        USSDController ussdController = USSDController.Companion.getInstance();
         Bundle arguments = new Bundle();
         arguments.putCharSequence(
                 AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, data);
@@ -146,7 +117,7 @@ public class USSDService extends AccessibilityService {
         for (AccessibilityNodeInfo leaf : getLeaves(event)) {
             if (leaf.getClassName().equals("android.widget.EditText")
                     && !leaf.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)) {
-                ClipboardManager clipboardManager = ((ClipboardManager) ussdController.context
+                ClipboardManager clipboardManager = ((ClipboardManager) ussdController.getContext()
                         .getSystemService(Context.CLIPBOARD_SERVICE));
                 if (clipboardManager != null) {
                     clipboardManager.setPrimaryClip(ClipData.newPlainText("text", data));
@@ -190,7 +161,7 @@ public class USSDService extends AccessibilityService {
      */
     private boolean LoginView(AccessibilityEvent event) {
         return isUSSDWidget(event)
-                && USSDController.instance.map.get(USSDController.KEY_LOGIN)
+                && USSDController.Companion.getInstance().getMap().get(USSDController.Companion.getKEY_LOGIN())
                 .contains(event.getText().get(0).toString());
     }
 
@@ -202,7 +173,7 @@ public class USSDService extends AccessibilityService {
      */
     protected boolean problemView(AccessibilityEvent event) {
         return isUSSDWidget(event)
-                && USSDController.instance.map.get(USSDController.KEY_ERROR)
+                && USSDController.Companion.getInstance().getMap().get(USSDController.Companion.getKEY_ERROR())
                 .contains(event.getText().get(0).toString());
     }
 
