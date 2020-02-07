@@ -8,5 +8,8 @@
     <string name="refuse_permissions">Please allow call permission</string>
     <string name="usss_input">Introduce # ussd</string>
     <string name="copyright">RomellFudi</string>
+    <string name="restart_update">Restart to update</string>
+    <string name="request_error">Request update error</string>
+    <string name="been_downloaded">Has been Downloaded!!!</string>
 
 </resources>

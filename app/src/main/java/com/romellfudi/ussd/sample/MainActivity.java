@@ -1,7 +1,9 @@
 package com.romellfudi.ussd.sample;
 
+import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -22,11 +24,10 @@ import com.google.android.play.core.install.InstallStateUpdatedListener;
 import com.google.android.play.core.install.model.AppUpdateType;
 import com.google.android.play.core.install.model.InstallStatus;
 import com.google.android.play.core.install.model.UpdateAvailability;
-import com.google.android.play.core.tasks.OnSuccessListener;
 import com.google.android.play.core.tasks.Task;
 import com.rbddevs.splashy.Splashy;
+import com.romellfudi.ussd.BuildConfig;
 import com.romellfudi.ussd.R;
-import com.romellfudi.ussdlibrary.BuildConfig;
 
 /**
  * Main Activity
@@ -41,13 +42,12 @@ public class MainActivity extends AppCompatActivity
 
     private AppUpdateManager appUpdateManager;
     private Task<AppUpdateInfo> appUpdateInfoTask;
-    private static final int REQUEST_CODE_FLEXIBLE_UPDATE = 1234;
+    private static final int REQUEST_CODE_IMMEDIATE_UPDATE = 1234;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (savedInstanceState == null)
-            splashy();
+        splashy();
         setContentView(R.layout.activity_main_menu);
 
         appUpdateManager = AppUpdateManagerFactory.create(this);
@@ -69,15 +69,12 @@ public class MainActivity extends AppCompatActivity
 
     private void checkUpdate() {
         appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
-        appUpdateInfoTask.addOnSuccessListener(new OnSuccessListener<AppUpdateInfo>() {
-            @Override
-            public void onSuccess(AppUpdateInfo appUpdateInfo) {
-                showMessage("updateAvailability: " + appUpdateInfo.updateAvailability() +
-                        " isUpdateTypeAllowed: " + appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE));
-                if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
-                        && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
-                    requestUpdate(appUpdateInfo);
-                }
+        appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
+            showMessage("updateAvailability: " + appUpdateInfo.updateAvailability() +
+                    " isUpdateTypeAllowed: " + appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE));
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                    && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+                requestUpdate(appUpdateInfo);
             }
         });
     }
@@ -88,9 +85,9 @@ public class MainActivity extends AppCompatActivity
                     appUpdateInfo,
                     AppUpdateType.IMMEDIATE,
                     MainActivity.this,
-                    REQUEST_CODE_FLEXIBLE_UPDATE);
+                    REQUEST_CODE_IMMEDIATE_UPDATE);
         } catch (IntentSender.SendIntentException e) {
-            showMessage("Request update error");
+            showMessage(getString(R.string.request_error));
         }
     }
 
@@ -107,19 +104,12 @@ public class MainActivity extends AppCompatActivity
                 .setFullScreen(true)
                 .setTime(2000)
                 .show();
-        Splashy.Companion.onComplete(new Splashy.OnComplete() {
-            @Override
-            public void onComplete() {
-                checkUpdate();
-            }
-        });
-
-
+        Splashy.Companion.onComplete(() -> checkUpdate());
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -127,7 +117,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -139,11 +128,11 @@ public class MainActivity extends AppCompatActivity
         }
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         getSupportActionBar().setTitle(tittle);
-        ft.replace(R.id.fragment_layout, newFragment); // f1_container is your FrameLayout container
-        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-        ft.addToBackStack(null);
-        ft.commit();
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ft.replace(R.id.fragment_layout, newFragment)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .addToBackStack(null)
+                .commit();
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -151,7 +140,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onStateUpdate(InstallState installState) {
         if (installState.installStatus() == InstallStatus.DOWNLOADED) {
-            showMessage("Has been Downloaded!!!");
+            showMessage(getString(R.string.been_downloaded));
             notifyUser();
         }
     }
@@ -165,12 +154,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        appUpdateManager.getAppUpdateInfo().addOnSuccessListener(new OnSuccessListener<AppUpdateInfo>() {
-            @Override
-            public void onSuccess(AppUpdateInfo result) {
-                if (result.installStatus() == InstallStatus.DOWNLOADED) {
-                    notifyUser();
-                }
+        appUpdateManager.getAppUpdateInfo().addOnSuccessListener(result -> {
+            if (result.installStatus() == InstallStatus.DOWNLOADED) {
+                notifyUser();
             }
         });
     }
@@ -180,13 +166,22 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void notifyUser() {
-        Snackbar.make(findViewById(android.R.id.content), "Restart to update", Snackbar.LENGTH_INDEFINITE)
-                .setAction("Restart to update", new View.OnClickListener() {
+        Snackbar.make(findViewById(android.R.id.content), R.string.restart_update, Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.restart_update, new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         appUpdateManager.completeUpdate();
                         appUpdateManager.unregisterListener(MainActivity.this);
                     }
                 }).show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == REQUEST_CODE_IMMEDIATE_UPDATE) {
+            if (resultCode != RESULT_OK) {
+                checkUpdate();
+            }
+        }
     }
 }

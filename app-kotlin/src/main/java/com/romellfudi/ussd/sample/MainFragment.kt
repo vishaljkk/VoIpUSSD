@@ -13,18 +13,13 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-
 import com.romellfudi.permission.PermissionService
 import com.romellfudi.ussd.R
 import com.romellfudi.ussdlibrary.OverlayShowingService
 import com.romellfudi.ussdlibrary.SplashLoadingService
 import com.romellfudi.ussdlibrary.USSDApi
 import com.romellfudi.ussdlibrary.USSDController
-
-import java.util.ArrayList
-import java.util.Arrays
-import java.util.HashMap
-import java.util.HashSet
+import java.util.*
 
 /**
  * Use Case for Test Windows
@@ -47,29 +42,26 @@ class MainFragment : Fragment() {
     private var menuActivity: MainActivity? = null
 
     private val callback = object : PermissionService.Callback() {
-        override fun onRefuse(RefusePermissions: ArrayList<String>) {
-            Toast.makeText(context,
-                    getString(R.string.refuse_permissions),
-                    Toast.LENGTH_SHORT).show()
-            activity!!.finish()
+        override fun onResponse(refusePermissions: ArrayList<String>?) {
+            if (refusePermissions != null && refusePermissions.size > 0) {
+                Toast.makeText(context,
+                        getString(R.string.refuse_permissions),
+                        Toast.LENGTH_SHORT).show()
+                activity!!.finish()
+            }
         }
 
-        override fun onFinally() {
-            // pass
-        }
     }
 
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         map = HashMap()
-        map!!["KEY_LOGIN"] = HashSet(Arrays.asList("espere", "waiting", "loading", "esperando"))
-        map!!["KEY_ERROR"] = HashSet(Arrays.asList("problema", "problem", "error", "null"))
+        map!!["KEY_LOGIN"] = HashSet(listOf("espere", "waiting", "loading", "esperando"))
+        map!!["KEY_ERROR"] = HashSet(listOf("problema", "problem", "error", "null"))
         ussdApi = USSDController.getInstance(activity!!)
         menuActivity = activity as MainActivity?
-        PermissionService(activity).request(
-                arrayOf(permission.CALL_PHONE, permission.READ_PHONE_STATE),
-                callback)
+        PermissionService(activity).request( callback)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -92,13 +84,13 @@ class MainFragment : Fragment() {
                     result!!.append("\n-\n$message")
                     // first option list - select option 1
                     ussdApi!!.send("1") {
+                        Log.d("APP", it)
+                        result!!.append("\n-\n$it")
+                        // second option list - select option 1
+                        ussdApi!!.send("1") {
                             Log.d("APP", it)
                             result!!.append("\n-\n$it")
-                            // second option list - select option 1
-                            ussdApi!!.send("1") {
-                                Log.d("APP", it)
-                                result!!.append("\n-\n$it")
-                            }
+                        }
                     }
 //                    ussdApi!!.cancel()
                 }
@@ -157,17 +149,17 @@ class MainFragment : Fragment() {
                         Log.d("APP", message)
                         result!!.append("\n-\n$message")
                         // first option list - select option 1
-                        ussdApi!!.send("1")  {
+                        ussdApi!!.send("1") {
+                            Log.d("APP", it)
+                            result!!.append("\n-\n$message")
+                            // second option list - select option 1
+                            ussdApi!!.send("1") {
                                 Log.d("APP", it)
-                                result!!.append("\n-\n$message")
-                                // second option list - select option 1
-                                ussdApi!!.send("1") {
-                                        Log.d("APP", it)
-                                        result!!.append("\n-\n$it")
-                                        activity!!.stopService(svc)
-                                        Log.d("APP", "STOP SPLASH DIALOG")
-                                        Log.d("APP", "successful")
-                                }
+                                result!!.append("\n-\n$it")
+                                activity!!.stopService(svc)
+                                Log.d("APP", "STOP SPLASH DIALOG")
+                                Log.d("APP", "successful")
+                            }
                         }
 //                        ussdApi!!.cancel()
                     }

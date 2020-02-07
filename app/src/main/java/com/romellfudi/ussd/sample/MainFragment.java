@@ -20,6 +20,7 @@ import com.romellfudi.ussdlibrary.OverlayShowingService;
 import com.romellfudi.ussdlibrary.SplashLoadingService;
 import com.romellfudi.ussdlibrary.USSDApi;
 import com.romellfudi.ussdlibrary.USSDController;
+import com.romellfudi.ussdlibrary.USSDController.CallbackInvoke;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,157 +57,125 @@ public class MainFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.content_op1, container, false);
-        result = (TextView) view.findViewById(R.id.result);
-        phone = (EditText) view.findViewById(R.id.phone);
-        btn1 = (Button) view.findViewById(R.id.btn1);
-        btn2 = (Button) view.findViewById(R.id.btn2);
-        btn3 = (Button) view.findViewById(R.id.btn3);
-        btn4 = (Button) view.findViewById(R.id.btn4);
+        result = view.findViewById(R.id.result);
+        phone = view.findViewById(R.id.phone);
+        btn1 = view.findViewById(R.id.btn1);
+        btn2 = view.findViewById(R.id.btn2);
+        btn3 = view.findViewById(R.id.btn3);
+        btn4 = view.findViewById(R.id.btn4);
         setHasOptionsMenu(false);
 
-        btn1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        btn1.setOnClickListener(v -> {
+            String phoneNumber = phone.getText().toString().trim();
+            ussdApi = USSDController.getInstance(getActivity());
+            result.setText("");
+            ussdApi.callUSSDInvoke(phoneNumber, map, new CallbackInvoke() {
+                @Override
+                public void responseInvoke(String message) {
+                    Log.d("APP", message);
+                    result.append("\n-\n" + message);
+                    // first option list - select option 1
+                    ussdApi.send("1", message15 -> {
+                        Log.d("APP", message15);
+                        result.append("\n-\n" + message15);
+                        // second option list - select option 1
+                        ussdApi.send("1", message14 -> {
+                            Log.d("APP", message14);
+                            result.append("\n-\n" + message14);
+                        });
+                    });
+//                        ussdApi.cancel();
+                }
+
+                @Override
+                public void over(String message) {
+                    Log.d("APP", message);
+                    result.append("\n-\n" + message);
+                }
+            });
+        });
+
+        btn2.setOnClickListener(v -> {
+            if (USSDController.verifyOverLay(getActivity())) {
+                final Intent svc = new Intent(getActivity(), OverlayShowingService.class);
+                svc.putExtra(OverlayShowingService.EXTRA, "PROCESANDO");
+                getActivity().startService(svc);
+                Log.d("APP", "START OVERLAY DIALOG");
                 String phoneNumber = phone.getText().toString().trim();
                 ussdApi = USSDController.getInstance(getActivity());
                 result.setText("");
-                ussdApi.callUSSDInvoke(phoneNumber, map, new USSDController.CallbackInvoke() {
+                ussdApi.callUSSDOverlayInvoke(phoneNumber, map, new USSDController.CallbackInvoke() {
                     @Override
                     public void responseInvoke(String message) {
                         Log.d("APP", message);
                         result.append("\n-\n" + message);
                         // first option list - select option 1
-                        ussdApi.send("1", new USSDController.CallbackMessage() {
-                            @Override
-                            public void responseMessage(String message) {
-                                Log.d("APP", message);
-                                result.append("\n-\n" + message);
-                                // second option list - select option 1
-                                ussdApi.send("1", new USSDController.CallbackMessage() {
-                                    @Override
-                                    public void responseMessage(String message) {
-                                        Log.d("APP", message);
-                                        result.append("\n-\n" + message);
-                                    }
-                                });
-                            }
+                        ussdApi.send("1", message13 -> {
+                            Log.d("APP", message13);
+                            result.append("\n-\n" + message13);
+                            // second option list - select option 1
+                            ussdApi.send("1", message131 -> {
+                                Log.d("APP", message131);
+                                result.append("\n-\n" + message131);
+                                getActivity().stopService(svc);
+                                Log.d("APP", "STOP OVERLAY DIALOG");
+                                Log.d("APP", "successful");
+                            });
                         });
-//                        ussdApi.cancel();
+//                            ussdApi.cancel();
                     }
 
                     @Override
                     public void over(String message) {
                         Log.d("APP", message);
                         result.append("\n-\n" + message);
+                        getActivity().stopService(svc);
+                        Log.d("APP", "STOP OVERLAY DIALOG");
                     }
                 });
             }
         });
 
-        btn2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (USSDController.verifyOverLay(getActivity())) {
-                    final Intent svc = new Intent(getActivity(), OverlayShowingService.class);
-                    svc.putExtra(OverlayShowingService.EXTRA, "PROCESANDO");
-                    getActivity().startService(svc);
-                    Log.d("APP", "START OVERLAY DIALOG");
-                    String phoneNumber = phone.getText().toString().trim();
-                    ussdApi = USSDController.getInstance(getActivity());
-                    result.setText("");
-                    ussdApi.callUSSDOverlayInvoke(phoneNumber, map, new USSDController.CallbackInvoke() {
-                        @Override
-                        public void responseInvoke(String message) {
-                            Log.d("APP", message);
-                            result.append("\n-\n" + message);
-                            // first option list - select option 1
-                            ussdApi.send("1", new USSDController.CallbackMessage() {
-                                @Override
-                                public void responseMessage(String message) {
-                                    Log.d("APP", message);
-                                    result.append("\n-\n" + message);
-                                    // second option list - select option 1
-                                    ussdApi.send("1", new USSDController.CallbackMessage() {
-                                        @Override
-                                        public void responseMessage(String message) {
-                                            Log.d("APP", message);
-                                            result.append("\n-\n" + message);
-                                            getActivity().stopService(svc);
-                                            Log.d("APP", "STOP OVERLAY DIALOG");
-                                            Log.d("APP", "successful");
-                                        }
-                                    });
-                                }
+        btn4.setOnClickListener(v -> {
+            if (USSDController.verifyOverLay(getActivity())) {
+                final Intent svc = new Intent(getActivity(), SplashLoadingService.class);
+                getActivity().startService(svc);
+                Log.d("APP", "START SPLASH DIALOG");
+                String phoneNumber = phone.getText().toString().trim();
+                result.setText("");
+                ussdApi.callUSSDOverlayInvoke(phoneNumber, map, new USSDController.CallbackInvoke() {
+                    @Override
+                    public void responseInvoke(String message) {
+                        Log.d("APP", message);
+                        result.append("\n-\n" + message);
+                        // first option list - select option 1
+                        ussdApi.send("1", message12 -> {
+                            Log.d("APP", message12);
+                            result.append("\n-\n" + message12);
+                            // second option list - select option 1
+                            ussdApi.send("1", message1 -> {
+                                Log.d("APP", message1);
+                                result.append("\n-\n" + message1);
+                                getActivity().stopService(svc);
+                                Log.d("APP", "STOP SPLASH DIALOG");
+                                Log.d("APP", "successful");
                             });
-//                            ussdApi.cancel();
-                        }
+                        });
+                        ussdApi.cancel();
+                    }
 
-                        @Override
-                        public void over(String message) {
-                            Log.d("APP", message);
-                            result.append("\n-\n" + message);
-                            getActivity().stopService(svc);
-                            Log.d("APP", "STOP OVERLAY DIALOG");
-                        }
-                    });
-                }
+                    @Override
+                    public void over(String message) {
+                        Log.d("APP", message);
+                        result.append("\n-\n" + message);
+                        getActivity().stopService(svc);
+                        Log.d("APP", "STOP OVERLAY DIALOG");
+                    }
+                });
             }
         });
 
-        btn4.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (USSDController.verifyOverLay(getActivity())) {
-                    final Intent svc = new Intent(getActivity(), SplashLoadingService.class);
-                    getActivity().startService(svc);
-                    Log.d("APP", "START SPLASH DIALOG");
-                    String phoneNumber = phone.getText().toString().trim();
-                    result.setText("");
-                    ussdApi.callUSSDOverlayInvoke(phoneNumber, map, new USSDController.CallbackInvoke() {
-                        @Override
-                        public void responseInvoke(String message) {
-                            Log.d("APP", message);
-                            result.append("\n-\n" + message);
-                            // first option list - select option 1
-                            ussdApi.send("1", new USSDController.CallbackMessage() {
-                                @Override
-                                public void responseMessage(String message) {
-                                    Log.d("APP", message);
-                                    result.append("\n-\n" + message);
-                                    // second option list - select option 1
-                                    ussdApi.send("1", new USSDController.CallbackMessage() {
-                                        @Override
-                                        public void responseMessage(String message) {
-                                            Log.d("APP", message);
-                                            result.append("\n-\n" + message);
-                                            getActivity().stopService(svc);
-                                            Log.d("APP", "STOP SPLASH DIALOG");
-                                            Log.d("APP", "successful");
-                                        }
-                                    });
-                                }
-                            });
-                            ussdApi.cancel();
-                        }
-
-                        @Override
-                        public void over(String message) {
-                            Log.d("APP", message);
-                            result.append("\n-\n" + message);
-                            getActivity().stopService(svc);
-                            Log.d("APP", "STOP OVERLAY DIALOG");
-                        }
-                    });
-                }
-            }
-        });
-
-        btn3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                USSDController.verifyAccesibilityAccess(getActivity());
-            }
-        });
+        btn3.setOnClickListener(v -> USSDController.verifyAccesibilityAccess(getActivity()));
 
         return view;
     }
@@ -214,7 +183,7 @@ public class MainFragment extends Fragment {
     private PermissionService.Callback callback = new PermissionService.Callback() {
         @Override
         public void onResponse(ArrayList<String> refusePermissions) {
-            if (refusePermissions != null) {
+            if (refusePermissions != null && refusePermissions.size()>0) {
                 Toast.makeText(getContext(),
                         getString(R.string.refuse_permissions),
                         Toast.LENGTH_SHORT).show();

@@ -10,13 +10,12 @@ android {
         }
     }
     compileSdkVersion 28
-    buildToolsVersion "28.0.3"
     defaultConfig {
         applicationId "com.romellfudi.ussd"
         minSdkVersion 23
         targetSdkVersion 28
-        versionCode 9
-        versionName "1.8.0"
+        versionCode 10
+        versionName "1.10.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.config
     }
@@ -25,6 +24,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     productFlavors {
     }
